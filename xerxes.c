@@ -61,8 +61,8 @@ void broke(int s) {
 	// do nothing
 }
 
-#define CONNECTIONS 60
-#define THREADS 120
+#define CONNECTIONS 40
+#define THREADS 65
 
 /*
  * This function will send a null character to the
